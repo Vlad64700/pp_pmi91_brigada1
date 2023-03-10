@@ -3,14 +3,19 @@
 #include <cstring>
 #include <pthread.h>
 #include <chrono>
+#include <unistd.h>
 
 #define MICROSECONDS_IN_SECOND 1e-6
 
 using namespace std;
 
+auto begin_global = chrono::steady_clock::now();
+auto end_global = chrono::steady_clock::now();
+
 /* Функция, которую будет исполнять созданный поток */
 void *thread_job(void *arg)
 {
+  end_global = chrono::steady_clock::now();
   auto begin = chrono::steady_clock::now(); //время начала работы функции потока
   // cout << "Thread is running..." << endl;
   // Преобразуем указатель на параметр потока к правильному типу
@@ -48,7 +53,8 @@ int main(int argc, char *argv[])
   pthread_attr_t thread_attr; // Атрибуты потока
   int err;
 
-  auto begin = chrono::steady_clock::now(); //время перед созданием потока
+
+  begin_global=chrono::steady_clock::now();
 
   // Создаём поток и передаем ему параметр
   err = pthread_create(&thread, NULL, thread_job,  (void *) &operations_count);
@@ -59,9 +65,9 @@ int main(int argc, char *argv[])
     exit(-1);
   }
 
+  sleep(1); 
   //время после создания потока
-  auto end = chrono::steady_clock::now();
-  auto time_difference = chrono::duration_cast<chrono::microseconds>(end - begin).count() * MICROSECONDS_IN_SECOND;
+  auto time_difference = chrono::duration_cast<chrono::microseconds>(end_global - begin_global).count() * MICROSECONDS_IN_SECOND;
   cout << "Thread creation time: " << time_difference  << " seconds" << endl;
   // Ожидаем завершения всех созданных потоков перед завершением
   // работы программы
